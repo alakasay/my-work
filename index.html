@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>יומן עבודה חודשי - צוות יצרנים</title>
+    <style>
+        /* ... (previous CSS remains unchanged) ... */
+        .day-note {
+            font-size: 0.7em;
+            margin-top: 15px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <!-- ... (previous HTML structure remains unchanged) ... -->
+
+    <script>
+        let currentDate = new Date();
+        const daysOfWeek = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+        const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+        let notes = {};
+        let tasks = [];
+
+        function renderCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+
+            daysOfWeek.forEach(day => {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-header';
+                dayEl.textContent = day;
+                calendarEl.appendChild(dayEl);
+            });
+
+            const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            
+            let currentDay = new Date(firstDayOfMonth);
+            currentDay.setDate(currentDay.getDate() - currentDay.getDay());
+
+            while (currentDay <= lastDayOfMonth || currentDay.getDay() !== 0) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                if (currentDay.getMonth() !== currentDate.getMonth()) {
+                    dayEl.classList.add('other-month');
+                }
+                if (currentDay.toDateString() === new Date().toDateString()) {
+                    dayEl.classList.add('today');
+                }
+                dayEl.innerHTML = `<span class="day-number">${currentDay.getDate()}</span>`;
+                
+                const noteKey = formatDateKey(currentDay);
+                if (notes[noteKey]) {
+                    dayEl.classList.add('has-note');
+                    dayEl.innerHTML += `<div class="day-note">${notes[noteKey]}</div>`;
+                }
+
+                dayEl.onclick = () => openModal(new Date(currentDay));
+                calendarEl.appendChild(dayEl);
+
+                currentDay.setDate(currentDay.getDate() + 1);
+            }
+
+            updateMonthDisplay();
+        }
+
+        function formatDateKey(date) {
+            return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+        }
+
+        function updateMonthDisplay() {
+            document.getElementById('currentMonth').textContent = 
+                `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+        }
+
+        function prevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function openModal(date) {
+            const modal = document.getElementById('noteModal');
+            const modalDate = document.getElementById('modalDate');
+            const dayNote = document.getElementById('dayNote');
+            
+            modalDate.textContent = `${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            
+            const noteKey = formatDateKey(date);
+            dayNote.value = notes[noteKey] || '';
+            
+            modal.style.display = 'block';
+            dayNote.focus();
+
+            window.currentEditingDate = date;
+        }
+
+        function closeModal() {
+            document.getElementById('noteModal').style.display = 'none';
+        }
+
+        function saveNote() {
+            const date = window.currentEditingDate;
+            const noteKey = formatDateKey(date);
+            const noteText = document.getElementById('dayNote').value.trim();
+            
+            if (noteText) {
+                notes[noteKey] = noteText;
+            } else {
+                delete notes[noteKey];
+            }
+
+            renderCalendar();
+            closeModal();
+            saveToLocalStorage();
+        }
+
+        function deleteNote() {
+            const date = window.currentEditingDate;
+            const noteKey = formatDateKey(date);
+            delete notes[noteKey];
+            renderCalendar();
+            closeModal();
+            saveToLocalStorage();
+        }
+
+        // ... (rest of the code remains unchanged) ...
+
+        loadFromLocalStorage();
+        renderCalendar();
+        renderTasks();
+    </script>
+</body>
+</html>
