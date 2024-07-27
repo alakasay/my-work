@@ -1,1 +1,20 @@
 theme: jekyll-theme-minimal
+title: My Work
+description:יומן יצרנים פרטיים 
+baseurl: "/my-work"
+url: "https://alakasay.github.io"
+github_username: alakasay
+
+
+markdown: kramdown
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# header_pages:
+#   - about.md
+#   - contact.md
+
+
+show_downloads: false
+google_analytics: 
